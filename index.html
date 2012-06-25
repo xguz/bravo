@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Bravo by leanucci</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Bravo</h1>
+        <p>AFIP WSFE adapter.</p>
+
+        <p class="view"><a href="https://github.com/leanucci/Bravo">View the Project on GitHub <small>leanucci/Bravo</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/leanucci/Bravo/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/leanucci/Bravo/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/leanucci/Bravo">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>h1. Bravo: la gema de facturación electrónica argentina</p>
+
+<p>"-Bravo-":<a href="http://images.coveralia.com/audio/b/Bravo-Desierto_Sin_Amor-Frontal.jpg">http://images.coveralia.com/audio/b/Bravo-Desierto_Sin_Amor-Frontal.jpg</a> Bravo permite la obtención del "-C.A.E.-":<a href="http://www.muevamueva.com/masmusica/latina/cae/images/fotos.5.gif">http://www.muevamueva.com/masmusica/latina/cae/images/fotos.5.gif</a> C.A.E. (Código de Autorización Electrónico) por medio del Web Service de Facturación Electrónica provisto por la AFIP.</p>
+
+<p>h2. Instalación</p>
+
+<pre>
+  gem install bravo
+</pre>
+
+<p>o</p>
+
+<pre>
+  gem 'bravo'
+</pre>
+
+<p>en tu @Gemfile@</p>
+
+<p>h2. Configuración</p>
+
+<p>Los servicios de AFIP requieren la utilización del Web Service de Autorización y Autenticación ("wsaa readme":<a href="http://www.afip.gov.ar/ws/WSAA/README.txt">http://www.afip.gov.ar/ws/WSAA/README.txt</a>)</p>
+
+<p>Luego de cumplidos los pasos indicados en el readme, basta con configurar Bravo con la ruta a los archivos:</p>
+
+<pre>
+  Bravo.pkey = "spec/fixtures/pkey"
+  Bravo.cert = "spec/fixtures/cert.crt"
+</pre>
+
+<p>y exportar la variable CUIT con el número de cuit usado para obtener los certificados:</p>
+
+<p><a href="https://github.com/export" class="user-mention">@export</a> CUIT=<em>numerodecuit</em>@</p>
+
+<p>Bravo acepta más opciones, para más detalles ver el "spec_helper":<a href="https://github.com/vurbia/Bravo/blob/master/spec/spec_helper.rb">https://github.com/vurbia/Bravo/blob/master/spec/spec_helper.rb</a></p>
+
+<p>h2. Uso</p>
+
+<p>El uso de la gema se centra en el metodo @<a href="mailto:authorize@">authorize@</a>. Este método invoca @FECAESolicitar@ y devuelve el resultado, que de ser exitoso incluye el CAE y su fecha de vencimento (ver "bill_spec":<a href="https://github.com/vurbia/Bravo/blob/master/spec/bravo/bill_spec.rb#L87">https://github.com/vurbia/Bravo/blob/master/spec/bravo/bill_spec.rb#L87</a>)</p>
+
+<p>h2. TODO list</p>
+
+<ul>
+<li>rdoc</li>
+<li>mensajes de error más completos</li>
+</ul><p>h2. Agradecimientos</p>
+
+<ul>
+<li>Emilio Tagua por sus consejos y contribuciones.</li>
+</ul><p>Copyright (c) 2010 Leandro Marcucci  &amp; Vurbia Technologies International Inc. See LICENSE.txt for further details.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/leanucci">leanucci</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>

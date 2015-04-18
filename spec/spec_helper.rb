@@ -32,7 +32,7 @@ Bravo.default_documento = 'CUIT'
 Bravo.default_moneda    = :peso
 Bravo.own_iva_cond      = :responsable_inscripto
 Bravo.logger            = { log: false, level: :debug }
-Bravo.openssl_bin       = 'openssl'
+Bravo.openssl_bin       = '/usr/local/Cellar/openssl/1.0.1j/bin/openssl'
 Bravo::AuthData.environment = :test
 
 # TODO: refactor into actual validations

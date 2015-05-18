@@ -26,6 +26,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency(%{rake}, ["~> 10.4.0"])
   gem.add_development_dependency(%{vcr}, ["~> 2.9.0"])
   gem.add_development_dependency(%{simplecov}, ["~> 0.9.0"])
-  gem.add_development_dependency(%{rubocop}, ["~> 0.29.0"])
+  gem.add_development_dependency(%{rubocop}, ["~> 0.31.0"])
   gem.add_development_dependency(%{webmock}, ["~> 1.18.0"])
 end

@@ -7,17 +7,15 @@ require 'bravo/core_ext/hash'
 require 'bravo/core_ext/string'
 
 module Bravo
-
   # Exception Class for missing or invalid attributes
   #
   class NullOrInvalidAttribute < StandardError; end
-
   # Exception Class for missing or invalid certifficate
   #
   class MissingCertificate < StandardError; end
-
   # This class handles the logging options
   #
+  # rubocop:disable Style/StructInheritance
   class Logger < Struct.new(:log, :pretty_xml, :level)
     # @param opts [Hash] receives a hash with keys `log`, `pretty_xml` (both
     # boolean) or the desired log level as `level`
@@ -33,6 +31,7 @@ module Bravo
       { log: log, pretty_print_xml: pretty_xml, log_level: level }
     end
   end
+  # rubocop:enable Style/StructInheritance
 
   autoload :Authorizer, 'bravo/authorizer'
   autoload :AuthData,   'bravo/auth_data'
@@ -78,6 +77,5 @@ module Bravo
     def auth_filename
       "/tmp/bravo_#{ Bravo.cuit }_#{ Time.new.strftime('%Y_%m_%d') }.yml"
     end
-
   end
 end

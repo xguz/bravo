@@ -15,7 +15,7 @@ module Bravo
 
     def initialize(attrs = {})
       opts = { wsdl: AuthData.wsfe_url }.merge! Bravo.logger_options
-      @client       ||= Savon.client(opts)
+      @client ||= Savon.client(opts)
       @body           = { 'Auth' => AuthData.auth_hash }
       @iva_condition  = validate_iva_condition(attrs[:iva_condition])
       @net            = attrs[:net].to_f.round(2) || 0
@@ -87,17 +87,18 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
     #
     def setup_bill
       request = Request.new
-      request.header = Bill.header(bill_type)
-      request.concept = CONCEPTOS[concept]
+      request.header        = Bill.header(bill_type)
+      request.concept       = CONCEPTOS[concept]
       request.document_type = DOCUMENTOS[document_type]
-      request.date = today
-      request.currency_id = MONEDAS[currency][:codigo]
-      request.iva_code = applicable_iva_code
-      request.net_amount = net.to_f
-      request.iva_amount = iva_sum
-      request.document_number = document_number
-      request.total = total
+      request.date          = today
+      request.currency_id   = MONEDAS[currency][:codigo]
+      request.iva_code      = applicable_iva_code
+      request.net_amount    = net.to_f
+      request.iva_amount    = iva_sum
+      request.total         = total
+
       request.from = request.to = Reference.next_bill_number(bill_type)
+      request.document_number = document_number
 
       request.date_from = date_from || today
       request.date_to   = date_to || today

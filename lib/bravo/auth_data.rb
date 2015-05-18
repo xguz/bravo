@@ -1,11 +1,8 @@
 module Bravo
-
   # This class handles authorization data
   #
   class AuthData
-
     class << self
-
       attr_accessor :environment, :todays_data_file_name
 
       # Fetches WSAA Authorization Data to build the datafile for the day.

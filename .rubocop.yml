@@ -12,15 +12,15 @@ Metrics/CyclomaticComplexity:
 
 Metrics/LineLength:
   Max: 110
-  Severity: error
+  Severity: refactor
 
 Metrics/ClassLength:
   Max: 150
-  Severity: error
+  Severity: refactor
 
 Metrics/MethodLength:
   Max: 15
-  Severity: error
+  Severity: refactor
 
 Metrics/ParameterLists:
   Max: 5
@@ -29,6 +29,9 @@ Metrics/ParameterLists:
 Metrics/PerceivedComplexity:
   Max: 10
   Severity: error
+
+Metrics/AbcSize:
+  Severity: refactor
 
 Lint/EndAlignment:
   AlignWith: variable
@@ -55,9 +58,6 @@ Style/GuardClause:
 Style/Lambda:
   Enabled: false
 
-Style/EmptyLinesAroundBody:
-  Enabled: false
-
 Style/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
 
@@ -80,11 +80,6 @@ Style/AlignHash:
 
 Style/ModuleFunction:
   Enabled: false
-
-Style/RegexpLiteral:
-  # The maximum number of (escaped) slashes that a slash-delimited regexp is
-  # allowed to have. If there are more slashes, a %r regexp shall be used.
-  MaxSlashes: 0
 
 Style/FormatString:
   Enabled: false
@@ -156,8 +151,3 @@ Style/PerlBackrefs:
 # There are valid cases (eg. Date.parse(date) rescue nil)
 Style/RescueModifier:
   Enabled: false
-
-Style/Blocks:
-  Severity: error
-  Exclude:
-  - '**/spec/**/*_spec.rb'

@@ -24,6 +24,23 @@ module Bravo
       @invoice_type   = validate_invoice_type(attrs[:invoice_type])
     end
 
+    def inspect
+      %{#<Bravo::Bill net: #{ net.inspect }, document_number: #{ document_number }, \
+iva_condition: "#{ iva_condition }", document_type: "#{ document_type }", concept: "#{ concept }", \
+currency: "#{ currency }", due_date: "#{ due_date }", aliciva_id: "#{ aliciva_id }", \
+date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
+    end
+
+    def to_hash
+      { net: net, document_number: document_number, iva_condition: iva_condition, invoice_type: invoice_type,
+        document_type: document_type, concept: concept, currency: currency, due_date: due_date,
+        aliciva_id: aliciva_id, date_from: date_from, date_to: date_to, body: body }
+    end
+
+    def to_yaml
+      to_hash.to_yaml
+    end
+
     # Searches the corresponding invoice type according to the combination of
     # the seller's IVA condition and the buyer's IVA condition
     # @return [String] the document type string

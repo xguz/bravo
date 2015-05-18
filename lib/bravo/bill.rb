@@ -157,7 +157,7 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
 
       keys, values = response_hash.to_a.transpose
 
-      self.response = Struct.new('Response', *keys).new(*values)
+      self.response = Struct.new(*keys).new(*values)
     end
     # rubocop:enable Metrics/MethodLength
 

@@ -26,8 +26,8 @@ EOF
   end
 
   describe '.build_cms' do
-    xit 'returns the cms with the tra in it' do
-      pending 'find a proper way to stub openssl'
+    pending 'returns the cms with the tra in it' do
+      expect(false).to be_truthy
     end
   end
 

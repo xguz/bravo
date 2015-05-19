@@ -10,20 +10,20 @@ module Bravo
     attr_reader :client
 
     attr_accessor :net, :document_number, :iva_condition, :document_type,
-      :concept, :currency, :due_date, :aliciva_id, :date_from, :date_to, :body,
+      :concept, :currency, :due_date, :aliciva_id, :date_from, :date_to,
       :response, :invoice_type
 
+    # rubocop:disable Metrics/AbcSize
     def initialize(attrs = {})
-      opts = { wsdl: AuthData.wsfe_url }.merge! Bravo.logger_options
-      @client ||= Savon.client(opts)
-      @body           = { 'Auth' => AuthData.auth_hash }
-      @iva_condition  = validate_iva_condition(attrs[:iva_condition])
+      @client ||= Savon.client({ wsdl: AuthData.wsfe_url }.merge! Bravo.logger_options)
       @net            = attrs[:net].to_f.round(2) || 0
       @document_type  = attrs.fetch(:document_type, Bravo.default_documento)
       @currency       = attrs.fetch(:currency, Bravo.default_moneda)
       @concept        = attrs.fetch(:concept, Bravo.default_concepto)
+      @iva_condition  = validate_iva_condition(attrs[:iva_condition])
       @invoice_type   = validate_invoice_type(attrs[:invoice_type])
     end
+    # rubocop:enable Metrics/AbcSize
 
     def inspect
       %{#<Bravo::Bill net: #{ net.inspect }, document_number: #{ document_number }, \
@@ -40,6 +40,10 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
 
     def to_yaml
       to_hash.to_yaml
+    end
+
+    def body
+      @body ||= { 'Auth' => AuthData.auth_hash }
     end
 
     # Searches the corresponding invoice type according to the combination of
@@ -85,6 +89,8 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
     # Sets up the request body for the authorisation
     # @return [Hash] returns the request body as a hash
     #
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength
     def setup_bill
       request = Request.new
       request.header        = Bill.header(bill_type)
@@ -106,6 +112,8 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
 
       body.merge!(request.to_hash)
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
 
     # Returns the result of the authorization operation
     # @return [Boolean] the response result
@@ -133,6 +141,7 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
     # @return [Struct] a struct with key-value pairs with the response values
     #
     # rubocop:disable Metrics/MethodLength
+    # rubocop:disable Metrics/AbcSize
     def setup_response(response)
       # TODO: turn this into an all-purpose Response class
       result = response[:fecae_solicitar_response][:fecae_solicitar_result]
@@ -165,6 +174,7 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
       self.response = Struct.new(*keys).new(*values)
     end
     # rubocop:enable Metrics/MethodLength
+    # rubocop:enable Metrics/AbcSize
 
     def applicable_iva
       index = APPLICABLE_IVA[Bravo.own_iva_cond][iva_condition]

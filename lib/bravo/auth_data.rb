@@ -10,21 +10,16 @@ module Bravo
       # to be configured as Bravo.pkey and Bravo.cert
       #
       def create
-        raise "Archivo de llave privada no encontrado en #{ Bravo.pkey }" unless File.exist?(Bravo.pkey)
-        raise "Archivo certificado no encontrado en #{ Bravo.cert }" unless File.exist?(Bravo.cert)
-
-        Bravo::Wsaa.login(current_data_file) unless authorized_data?
-
-        Bravo.const_set(:TOKEN, credentials[:token])
-        Bravo.const_set(:SIGN, credentials[:sign])
+        validate_certificates
+        Wsaa.login(current_data_file) unless currently_authorized?
       end
 
       # Returns the authorization hash, containing the Token, Signature and Cuit
       # @return [Hash]
       #
       def auth_hash
-        create unless Bravo.constants.include?(:TOKEN) && Bravo.constants.include?(:SIGN)
-        { 'Token' => Bravo::TOKEN, 'Sign' => Bravo::SIGN, 'Cuit' => Bravo.cuit }
+        create
+        { 'Token' => credentials[:token], 'Sign' => credentials[:sign], 'Cuit' => Bravo.cuit }
       end
 
       # Returns the right wsaa url for the specific environment
@@ -61,7 +56,7 @@ module Bravo
       # @return [Boolean]
       #
       def authorized_data?
-        DateTime.now < DateTime.parse(credentials[:expires_on])
+        DateTime.now < DateTime.parse(credentials[:expires_at])
       end
 
       # Reads current data file
@@ -76,6 +71,11 @@ module Bravo
       #
       def check_environment!
         raise 'Environment not set.' unless Bravo::URLS.keys.include? environment
+      end
+
+      def validate_certificates
+        raise "Archivo de llave privada no encontrado en #{ Bravo.pkey }" unless File.exist?(Bravo.pkey)
+        raise "Archivo certificado no encontrado en #{ Bravo.cert }" unless File.exist?(Bravo.cert)
       end
     end
   end

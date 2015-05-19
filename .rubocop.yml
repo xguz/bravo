@@ -1,13 +1,10 @@
 ---
 AllCops:
   Exclude:
-  - 'doc/'
-  - 'coverage/'
-  - 'pkg/'
-  - 'tmp/'
+  - 'bin/*'
 
 Metrics/CyclomaticComplexity:
-  Severity: error
+  Severity: refactor
   Max: 8
 
 Metrics/LineLength:
@@ -24,13 +21,10 @@ Metrics/MethodLength:
 
 Metrics/ParameterLists:
   Max: 5
-  Severity: error
+  Severity: refactor
 
 Metrics/PerceivedComplexity:
   Max: 10
-  Severity: error
-
-Metrics/AbcSize:
   Severity: refactor
 
 Lint/EndAlignment:
@@ -47,7 +41,7 @@ Style/CaseEquality:
 
 Style/Documentation:
   Enabled: false
-  Severity: error
+  Severity: refactor
 
 Style/IfUnlessModifier:
   MaxLineLength: 80
@@ -81,6 +75,11 @@ Style/AlignHash:
 Style/ModuleFunction:
   Enabled: false
 
+Style/RegexpLiteral:
+  # The maximum number of (escaped) slashes that a slash-delimited regexp is
+  # allowed to have. If there are more slashes, a %r regexp shall be used.
+  MaxSlashes: 0
+
 Style/FormatString:
   Enabled: false
 
@@ -91,13 +90,13 @@ Style/CaseIndentation:
   IndentWhenRelativeTo: end
 
 Style/PredicateName:
-  Severity: error
+  Severity: refactor
 
 Style/IndentHash:
   EnforcedStyle: consistent
 
 Style/MultilineBlockChain:
-  Severity: error
+  Severity: refactor
 
 Lint/AssignmentInCondition:
   Enabled: false
@@ -129,7 +128,7 @@ Style/CollectionMethods:
     find_all!: 'select!'
 
 Style/DoubleNegation:
-  Severity: error
+  Severity: refactor
 
 Style/SignalException:
   EnforcedStyle: only_raise
@@ -151,3 +150,8 @@ Style/PerlBackrefs:
 # There are valid cases (eg. Date.parse(date) rescue nil)
 Style/RescueModifier:
   Enabled: false
+
+Style/Blocks:
+  Severity: refactor
+  Exclude:
+  - '**/spec/**/*_spec.rb'

@@ -8,6 +8,8 @@ module Bravo
       { 'FeCAEReq' => { 'FeCabReq' => header, 'FeDetReq' => build_details } }
     end
 
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength
     def build_details
       hsh = {
         'FECAEDetRequest' => {
@@ -40,5 +42,7 @@ module Bravo
       }
       hsh.reject { |k, _v| hsh[k].nil? }
     end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
   end
 end

@@ -73,12 +73,12 @@ XML
     # Calls the WSAA with the request built by build_request
     # @return [Array] with the token and signature
     #
+    # rubocop:disable Metrics/AbcSize
     def self.call_wsaa(req)
       response = `echo '#{ req }' |
         curl -k -s -H 'Content-Type: application/soap+xml; action=""' -d @- #{ Bravo::AuthData.wsaa_url }`
 
       response = CGI.unescapeHTML(response)
-
       token = response.scan(%r{\<token\>(.+)\<\/token\>}).first.first
       sign  = response.scan(%r{\<sign\>(.+)\<\/sign\>}).first.first
       created_at = response.scan(%r{\<generationTime\>(.+)\<\/generationTime\>}).first.first
@@ -86,6 +86,7 @@ XML
 
       { token: token, sign: sign, created_at: created_at, expires_at: expires_at }
     end
+    # rubocop:enable Metrics/AbcSize
 
     # Writes the token and signature to a YAML file in the /tmp directory
     #

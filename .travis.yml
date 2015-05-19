@@ -3,7 +3,6 @@ rvm:
   - 2.0.0
   - 2.1.2
   - 2.2.0
-bundler_args: --without test
 script:
   - bundle exec rspec spec --format=progress
   - bundle exec rubocop

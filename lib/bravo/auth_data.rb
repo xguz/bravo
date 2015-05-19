@@ -9,22 +9,21 @@ module Bravo
       # It requires the private key file and the certificate to exist and
       # to be configured as Bravo.pkey and Bravo.cert
       #
-      def fetch
+      def create
         raise "Archivo de llave privada no encontrado en #{ Bravo.pkey }" unless File.exist?(Bravo.pkey)
         raise "Archivo certificado no encontrado en #{ Bravo.cert }" unless File.exist?(Bravo.cert)
 
-        Bravo::Wsaa.login unless File.exist?(todays_data_file_name)
+        Bravo::Wsaa.login(current_data_file) unless authorized_data?
 
-        YAML.load_file(todays_data_file_name).each do |k, v|
-          Bravo.const_set(k.to_s.upcase, v) unless Bravo.const_defined?(k.to_s.upcase)
-        end
+        Bravo.const_set(:TOKEN, credentials[:token])
+        Bravo.const_set(:SIGN, credentials[:sign])
       end
 
       # Returns the authorization hash, containing the Token, Signature and Cuit
       # @return [Hash]
       #
       def auth_hash
-        fetch unless Bravo.constants.include?(:TOKEN) && Bravo.constants.include?(:SIGN)
+        create unless Bravo.constants.include?(:TOKEN) && Bravo.constants.include?(:SIGN)
         { 'Token' => Bravo::TOKEN, 'Sign' => Bravo::SIGN, 'Cuit' => Bravo.cuit }
       end
 
@@ -47,10 +46,34 @@ module Bravo
       # Creates the data file name for a cuit number and the current day
       # @return [String]
       #
-      def todays_data_file_name
-        @todays_data_file ||= "/tmp/bravo_#{ Bravo.cuit }_#{ Time.new.strftime('%Y_%m_%d') }.yml"
+      def current_data_file
+        "/tmp/bravo_#{ Bravo.cuit }.yml"
       end
 
+      # Checks the auth file exists and contains valid current data
+      # @return [Boolean]
+      #
+      def currently_authorized?
+        File.exist?(current_data_file) && authorized_data?
+      end
+
+      # Checks credentials are valid
+      # @return [Boolean]
+      #
+      def authorized_data?
+        DateTime.now < DateTime.parse(credentials[:expires_on])
+      end
+
+      # Reads current data file
+      # @return [Hash]
+      #
+      def credentials
+        YAML.load_file(current_data_file)
+      end
+
+      # Validates Bravo.environment is set and valid
+      # @return [Boolean]
+      #
       def check_environment!
         raise 'Environment not set.' unless Bravo::URLS.keys.include? environment
       end

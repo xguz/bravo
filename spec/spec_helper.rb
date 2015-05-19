@@ -3,13 +3,8 @@ require 'bravo'
 require 'rspec'
 require 'vcr'
 require 'simplecov'
+require 'byebug'
 # SimpleCov.start
-
-begin
-  require 'debugger'
-rescue LoadError
-  puts 'debugger not found'
-end
 
 VCR.configure do |c|
   c.cassette_library_dir = 'spec/fixtures/vcr_cassettes'
@@ -30,7 +25,7 @@ Bravo.default_concepto  = 'Productos y Servicios'
 Bravo.default_documento = 'CUIT'
 Bravo.default_moneda    = :peso
 Bravo.own_iva_cond      = :responsable_inscripto
-Bravo.logger            = { log: false, level: :info }
+Bravo.logger            = { log: true, level: :debug }
 Bravo.openssl_bin       = ENV["TRAVIS"] ? 'openssl' : '/usr/local/Cellar/openssl/1.0.2a-1/bin/openssl'
 Bravo::AuthData.environment = :test
 

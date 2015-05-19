@@ -34,7 +34,7 @@ EOF
   describe '.login' do
     it 'writes the auth file', vcr: { cassette_name: 'login' } do
       expect(File).to receive(:write)
-      Bravo::Wsaa.login
+      Bravo::Wsaa.login('/tmp/bravo_test.yml')
     end
   end
 end

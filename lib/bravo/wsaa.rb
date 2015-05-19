@@ -7,13 +7,13 @@ module Bravo
     # Main method for authentication and authorization.
     # When successful, produces the yaml file with auth data.
     #
-    def self.login
+    def self.login(filename)
       tra   = build_tra
       cms   = build_cms(tra)
       req   = build_request(cms)
       auth  = call_wsaa(req)
 
-      write_yaml(auth)
+      write_yaml(auth, filename)
     end
 
     # Builds the xml for the 'Ticket de Requerimiento de Acceso'
@@ -78,19 +78,19 @@ XML
         curl -k -s -H 'Content-Type: application/soap+xml; action=""' -d @- #{ Bravo::AuthData.wsaa_url }`
 
       response = CGI.unescapeHTML(response)
+
       token = response.scan(%r{\<token\>(.+)\<\/token\>}).first.first
       sign  = response.scan(%r{\<sign\>(.+)\<\/sign\>}).first.first
-      [token, sign]
+      created_at = response.scan(%r{\<generationTime\>(.+)\<\/generationTime\>}).first.first
+      expires_at = response.scan(%r{\<expirationTime\>(.+)\<\/expirationTime\>}).first.first
+
+      { token: token, sign: sign, created_at: created_at, expires_at: expires_at }
     end
 
     # Writes the token and signature to a YAML file in the /tmp directory
     #
-    def self.write_yaml(certs)
-      yml = <<-YML
-token: #{certs[0]}
-sign: #{certs[1]}
-YML
-      File.write(Bravo.auth_filename, yml)
+    def self.write_yaml(credentials, filename)
+      File.write(filename, credentials.to_yaml)
     end
   end
 end

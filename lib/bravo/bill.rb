@@ -1,4 +1,7 @@
 # encoding: utf-8
+require 'bigdecimal'
+require 'bigdecimal/util'
+
 module Bravo
   # The main class in Bravo. Handles WSFE method interactions.
   # Subsequent implementations will be added here (maybe).
@@ -7,7 +10,7 @@ module Bravo
     # Returns the Savon::Client instance in charge of the interactions
     # with WSFE API (built on init)
     #
-    attr_reader :client
+    attr_reader :client, :iva_sum, :total
 
     attr_accessor :net, :document_number, :iva_condition, :document_type,
       :concept, :currency, :due_date, :aliciva_id, :date_from, :date_to,
@@ -16,7 +19,7 @@ module Bravo
     # rubocop:disable Metrics/AbcSize
     def initialize(attrs = {})
       @client ||= Savon.client({ wsdl: AuthData.wsfe_url }.merge! Bravo.logger_options)
-      @net            = attrs[:net].to_f.round(2) || 0
+      @net            = attrs.fetch(:net, 0).to_d
       @document_type  = attrs.fetch(:document_type, Bravo.default_documento)
       @currency       = attrs.fetch(:currency, Bravo.default_moneda)
       @concept        = attrs.fetch(:concept, Bravo.default_concepto)
@@ -58,8 +61,8 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
     # net and iva_sum.
     # @return [Float] the sum of both fields, or 0 if the net is 0.
     #
-    def total
-      @total = net.zero? ? 0.0 : net + iva_sum
+    def calculate_total
+      @total = net + calculate_iva_sum
     end
 
     # Calculates the corresponding iva sum.
@@ -68,9 +71,8 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
     #
     # TODO: fix this
     #
-    def iva_sum
-      @iva_sum = net * applicable_iva_multiplier
-      @iva_sum.round(2)
+    def calculate_iva_sum
+      @iva_sum ||= (net * applicable_iva_multiplier).round(2)
     end
 
     # Files the authorization request to AFIP
@@ -99,9 +101,9 @@ date_from: #{ date_from.inspect }, date_to: #{ date_to.inspect }, invoice_type: 
       request.date          = today
       request.currency_id   = MONEDAS[currency][:codigo]
       request.iva_code      = applicable_iva_code
-      request.net_amount    = net.to_f
-      request.iva_amount    = iva_sum
-      request.total         = total
+      request.net_amount    = net.to_d
+      request.iva_amount    = calculate_iva_sum
+      request.total         = calculate_total
 
       request.from = request.to = Reference.next_bill_number(bill_type)
       request.document_number = document_number

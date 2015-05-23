@@ -48,14 +48,14 @@ module Bravo
     end
 
     describe '#iva_sum and #total' do
-      it 'calculate the IVA array values' do
+      it 'calculates the IVA array values' do
         bill.iva_condition  = :responsable_inscripto
         bill.currency       = :peso
         bill.net            = 100.89
         bill.aliciva_id     = 2
 
-        expect(bill.iva_sum).to be_within(0.005).of(21.19)
-        expect(bill.total).to be_within(0.005).of(122.08)
+        expect(bill.calculate_iva_sum).to be_within(0.005).of(21.19)
+        expect(bill.calculate_total).to be_within(0.005).of(122.08)
       end
     end
 

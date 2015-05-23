@@ -79,12 +79,10 @@ XML
         curl -k -s -H 'Content-Type: application/soap+xml; action=""' -d @- #{ Bravo::AuthData.wsaa_url }`
 
       response = CGI.unescapeHTML(response)
-      require 'pp'
-      pp response
       token = response.scan(%r{\<token\>(.+)\<\/token\>}).flatten.first
       sign  = response.scan(%r{\<sign\>(.+)\<\/sign\>}).flatten.first
-      created_at = response.scan(%r{\<generationTime\>(.+)\<\/generationTime\>}).first.first
-      expires_at = response.scan(%r{\<expirationTime\>(.+)\<\/expirationTime\>}).first.first
+      created_at = response.scan(%r{\<generationTime\>(.+)\<\/generationTime\>}).flatten.first
+      expires_at = response.scan(%r{\<expirationTime\>(.+)\<\/expirationTime\>}).flatten.first
 
       { token: token, sign: sign, created_at: created_at, expires_at: expires_at }
     end
@@ -97,4 +95,3 @@ XML
     end
   end
 end
-

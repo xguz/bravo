@@ -15,15 +15,15 @@ module Bravo
   class MissingCertificate < StandardError; end
   # This class handles the logging options
   #
-  # rubocop:disable Style/StructInheritance
-  class Logger < Struct.new(:log, :pretty_xml, :level)
+  class Logger
     # @param opts [Hash] receives a hash with keys `log`, `pretty_xml` (both
     # boolean) or the desired log level as `level`
+    attr_accessor :log, :pretty_xml, :level
 
     def initialize(opts = {})
-      self.log = opts[:log] || false
-      self.pretty_xml = opts[:pretty_xml] || log
-      self.level = opts[:level] || :debug
+      self.log = opts.fetch(:log, false)
+      self.pretty_xml = opts.fetch(:pretty_xml, log)
+      self.level = opts.fetch(:level, :debug)
     end
 
     # @return [Hash] returns a hash with the proper logging optios for Savon.
@@ -31,7 +31,6 @@ module Bravo
       { log: log, pretty_print_xml: pretty_xml, log_level: level }
     end
   end
-  # rubocop:enable Style/StructInheritance
 
   autoload :Authorizer, 'bravo/authorizer'
   autoload :AuthData,   'bravo/auth_data'
@@ -51,7 +50,7 @@ module Bravo
     # @param opts [Hash] pass a hash with `log`, `pretty_xml` and `level` keys to set
     # them.
     def logger=(opts)
-      @logger ||= Logger.new(opts)
+      @logger = Logger.new(opts)
     end
 
     # Sets the logger options to the default values or returns the previously set

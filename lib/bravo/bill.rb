@@ -13,7 +13,7 @@ module Bravo
       :aliciva_id, :date_from, :date_to, :body, :response, :invoice_type
 
     def initialize(attrs = {})
-      opts = { wsdl: Bravo::AuthData.wsfe_url }.merge! Bravo.logger_options
+      opts = { wsdl: Bravo::AuthData.wsfe_url, ssl_version: :TLSv1 }.merge! Bravo.logger_options
       @client       ||= Savon.client(opts)
       @body           = { 'Auth' => Bravo::AuthData.auth_hash }
       @iva_condition  = validate_iva_condition(attrs[:iva_condition])

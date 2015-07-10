@@ -21,8 +21,7 @@ module Bravo
     end
 
     def inspect
-      %{#<Bravo::Bill iva_condition: "#{ iva_condition }", concept: "#{ concept }", \
-currency: "#{ currency }", due_date: "#{ due_date }", date_from: #{ date_from.inspect }, \
+      %{#<Bravo::Bill iva_condition: "#{ iva_condition }", due_date: "#{ due_date }", date_from: #{ date_from.inspect }, \
 date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
     end
 
@@ -44,9 +43,11 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
     end
 
     def set_new_invoice(invoice)
-      return false unless invoice.instance_of?(Bravo::Bill::Invoice)
-      @batch << invoice
-      invoice
+      if invoice.instance_of?(Bravo::Bill::Invoice)
+        @batch << invoice if invoice.validate_invoice_attributes
+      else
+        raise(NullOrInvalidAttribute.new, "invoice debe ser del tipo Bravo::Bill::Invoice ")
+      end
     end
 
     # Files the authorization request to AFIP
@@ -238,6 +239,11 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
 
       def applicable_iva_multiplier
         applicable_iva[1]
+      end
+
+      def validate_invoice_attributes
+        return true if document_number.present?
+        raise(NullOrInvalidAttribute.new, "document_number debe estar presente.")
       end
     end
   end

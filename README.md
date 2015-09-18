@@ -1,9 +1,11 @@
 # Bravo
-![Travis status](https://travis-ci.org/leanucci/bravo.png)
-[![Gem Version](https://badge.fury.io/rb/bravo.png)](http://badge.fury.io/rb/bravo)
-[![Code Climate](https://codeclimate.com/repos/5292a01e89af7e473304513a/badges/4a29fbaff3d74a23e634/gpa.png)](https://codeclimate.com/repos/5292a01e89af7e473304513a/feed)
+![Travis status](https://travis-ci.org/xguz/bravo.png)
+
+ Por ahora idéntica a leanucci/bravo, solo he modificado el ejemplo de este Readme, que fallaba debido a que faltaba el campo document_number / DocNro.
+
 
 [~~Bravo~~](http://images.coveralia.com/audio/b/Bravo-Desierto_Sin_Amor-Frontal.jpg) Bravo permite la obtenci&oacute;n del [~~C.A.E~~](http://www.muevamueva.com/masmusica/latina/cae/images/fotos.5.gif) C.A.E. (C&oacute;digo de Autorizaci&oacute;n Electr&oacute;nico) por medio del Web Service de Facturaci&oacute;n Electr&oacute;nica provisto por AFIP.
+
 
 ## Requisitos
 
@@ -65,7 +67,6 @@ Bravo.default_concepto  			 = 'Productos y Servicios'
 Bravo.default_documento 			 = 'CUIT'
 Bravo.default_moneda    			 = :peso
 Bravo.own_iva_cond      			 = :responsable_inscripto
-Bravo.verbose           			 = 'true'
 Bravo.openssl_bin       			 = '/usr/local/Cellar/openssl/1.0.1e/bin/openssl'
 Bravo::AuthData.environment		 = :test
 
@@ -93,13 +94,14 @@ Código de ejemplo para la configuración anterior:
 
 ```ruby
 
-bill = Bravo::Bill.new
+bill = Bravo::Bill.new(net:  100.0,
+                       aliciva_id: 2010,
+                       iva_condition: :consumidor_final,
+                       concepto: 'Servicios', 
+                       invoice_type:  :invoice
+                       );
 
-bill.net          = 100.00	# el neto de la factura, total para Consumidor final
-bill.aliciva_id   = 2010	# define la alicuota de iva a utilizar, ver archivo constants.
-bill.iva_cond     = :consumidor_final	# la condición ante el iva del 	comprador
-bill.concepto     = 'Servicios'	# concepto de la factura
-bill.invoice_type 	= :invoice	# el tipo de comprobante a emitir, en este caso factura.
+bill.document_number = 20111111112; #faltaba en ejemplo en leanucci/bravo, resultaba en mensaje de error: "(soap:Client) Server was unable to read request. ---> There is an error in XML document"
 
 bill.authorize
 

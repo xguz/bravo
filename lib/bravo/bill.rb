@@ -113,6 +113,9 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
       request_header  = body['FeCAEReq']['FeCabReq']
       request_detail  = body['FeCAEReq']['FeDetReq']['FECAEDetRequest']
 
+      # If there's only one invoice in the batch, put it in an array
+      response_detail = response_detail.respond_to?(:to_ary) ? response_detail : [response_detail]
+
       # request_detail.merge!(request_detail.delete(:iva)['AlicIva'])
 
       response_hash = { header_result:   response_header[:resultado],

@@ -9,24 +9,24 @@ module Bravo
     #
     attr_reader :client
 
-    attr_accessor :iva_condition, :due_date, :date_from, :date_to, :body, :response, :invoice_type, :batch
+    attr_accessor :bill_type, :due_date, :date_from, :date_to, :body, :response, :invoice_type, :batch
 
     def initialize(attrs = {})
       opts = { wsdl: Bravo::AuthData.wsfe_url, ssl_version: :TLSv1 }.merge! Bravo.logger_options
       @client       ||= Savon.client(opts)
       @body           = { 'Auth' => Bravo::AuthData.auth_hash }
-      @iva_condition  = validate_iva_condition(attrs[:iva_condition])
+      @bill_type      = validate_bill_type(attrs[:bill_type])
       @invoice_type   = validate_invoice_type(attrs[:invoice_type])
       @batch          = attrs[:batch] || []
     end
 
     def inspect
-      %{#<Bravo::Bill iva_condition: "#{ iva_condition }", due_date: "#{ due_date }", date_from: #{ date_from.inspect }, \
+      %{#<Bravo::Bill bill_type: "#{ bill_type }", due_date: "#{ due_date }", date_from: #{ date_from.inspect }, \
 date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
     end
 
     def to_hash
-      { iva_condition: iva_condition, invoice_type: invoice_type,
+      { bill_type: bill_type, invoice_type: invoice_type,
         due_date: due_date, date_from: date_from, date_to: date_to, body: body }
     end
 
@@ -38,16 +38,20 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
     # the seller's IVA condition and the buyer's IVA condition
     # @return [String] the document type string
     #
-    def bill_type
-      Bravo::BILL_TYPE[Bravo.own_iva_cond][iva_condition][invoice_type]
+    def bill_type_wsfe
+      Bravo::BILL_TYPE[bill_type][invoice_type]
     end
 
     def set_new_invoice(invoice)
-      if invoice.instance_of?(Bravo::Bill::Invoice)
-        @batch << invoice if invoice.validate_invoice_attributes
-      else
-        raise(NullOrInvalidAttribute.new, "invoice debe ser del tipo Bravo::Bill::Invoice ")
+      if not invoice.instance_of?(Bravo::Bill::Invoice)
+        raise(NullOrInvalidAttribute.new, "invoice debe ser del tipo Bravo::Bill::Invoice")
       end
+
+      if Bravo::IVA_CONDITION[Bravo.own_iva_cond][invoice.iva_condition][invoice_type] != bill_type_wsfe
+        raise(NullOrInvalidAttribute.new, "The invoice doesn't correspond to this bill type")
+      end
+
+      @batch << invoice if invoice.validate_invoice_attributes
     end
 
     # Files the authorization request to AFIP
@@ -70,7 +74,7 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
     def setup_bill
       fecaereq = setup_request_structure
       det_request = fecaereq['FeCAEReq']['FeDetReq']['FECAEDetRequest']
-      last_cbte = Bravo::Reference.next_bill_number(bill_type)
+      last_cbte = Bravo::Reference.next_bill_number(bill_type_wsfe)
       @batch.each_with_index do |invoice, index|
         cbte = last_cbte + index
         det_request << setup_invoice_structure(invoice, cbte)
@@ -141,19 +145,19 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
 
     def setup_request_structure
       { 'FeCAEReq' =>
-        { 'FeCabReq' => header(bill_type),
+        { 'FeCabReq' => header(bill_type_wsfe),
           'FeDetReq' => {
             'FECAEDetRequest' => []
           } } }
     end
 
-    def validate_iva_condition(iva_cond)
-      valid_conditions = Bravo::BILL_TYPE[Bravo.own_iva_cond].keys
-      if valid_conditions.include? iva_cond
-        iva_cond
+    def validate_bill_type(type)
+      valid_types = Bravo::BILL_TYPE.keys
+      if valid_types.include? type 
+        type 
       else
         raise(NullOrInvalidAttribute.new,
-          "El valor de iva_condition debe estar incluído en #{ valid_conditions }")
+          "El valor de iva_condition debe estar incluído en #{ valid_types }")
       end
     end
 
@@ -222,7 +226,7 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
       end
 
       def validate_iva_condition(iva_cond)
-        valid_conditions = Bravo::BILL_TYPE[Bravo.own_iva_cond].keys
+        valid_conditions = Bravo::IVA_CONDITION[Bravo.own_iva_cond].keys
         if valid_conditions.include? iva_cond
           iva_cond
         else
@@ -245,7 +249,7 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
       end
 
       def validate_invoice_attributes
-        return true if document_number.present?
+        return true unless document_number.blank?
         raise(NullOrInvalidAttribute.new, "document_number debe estar presente.")
       end
     end

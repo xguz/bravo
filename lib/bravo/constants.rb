@@ -87,18 +87,24 @@ module Bravo
     credit:  '08'
   }
 
-  # This hash keeps the different buyer and invoice type mapping corresponding to
-  # the seller's iva condition and invoice kind.
+  # This hash keeps the different types of bills
+  #
+  BILL_TYPE = {
+    bill_a: BILL_TYPE_A,
+    bill_b: BILL_TYPE_B
+  }
+
+  # This hash is used to validate the buyer condition and the bill type being issued.
   # Usage:
   #   `BILL_TYPE[seller_iva_cond][buyer_iva_cond][invoice_type]` #=> invoice type as string
   #   `BILL_TYPE[:responsable_inscripto][:responsable_inscripto][:invoice]` #=> '01'
   #
-  BILL_TYPE = {
+  IVA_CONDITION = {  
     responsable_inscripto: {
       responsable_inscripto:   BILL_TYPE_A,
       consumidor_final:        BILL_TYPE_B,
       exento:                  BILL_TYPE_B,
-      responsable_monotributo: BILL_TYPE_B }
+      responsable_monotributo: BILL_TYPE_B },
   }
 
   # This hash keeps the set of urls for wsaa and wsfe for production and testing envs

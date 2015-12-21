@@ -153,8 +153,8 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
 
     def validate_bill_type(type)
       valid_types = Bravo::BILL_TYPE.keys
-      if valid_types.include? type 
-        type 
+      if valid_types.include? type
+        type
       else
         raise(NullOrInvalidAttribute.new,
           "El valor de iva_condition debe estar incluído en #{ valid_types }")
@@ -212,6 +212,7 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
       #
       def total
         @total = net.zero? ? 0 : net + iva_sum
+        @total.round(2)
       end
 
       # Calculates the corresponding iva sum.

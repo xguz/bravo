@@ -58,17 +58,11 @@ module Bravo
 
   # Tax percentage and codes according to each iva combination
   #
-  ALIC_IVA = [['03', 0], ['04', 0.105], ['05', 0.21], ['06', 0.27]]
-
-  # Applicable tax according to buyer and seller's iva condition.
-  #
-  APPLICABLE_IVA = {
-    responsable_inscripto:  {
-      responsable_inscripto: 02,
-      consumidor_final: 00,
-      exento: 00,
-      responsable_monotributo: 00
-    }
+  ALIC_IVA = {
+      iva_0:  ['03', 0],
+      iva_10: ['04', 0.105],
+      iva_21: ['05', 0.21],
+      iva_27: ['06', 0.27]
   }
 
   # This hash keeps the codes for A document types by operation
@@ -99,7 +93,7 @@ module Bravo
   #   `BILL_TYPE[seller_iva_cond][buyer_iva_cond][invoice_type]` #=> invoice type as string
   #   `BILL_TYPE[:responsable_inscripto][:responsable_inscripto][:invoice]` #=> '01'
   #
-  IVA_CONDITION = {  
+  IVA_CONDITION = {
     responsable_inscripto: {
       responsable_inscripto:   BILL_TYPE_A,
       consumidor_final:        BILL_TYPE_B,

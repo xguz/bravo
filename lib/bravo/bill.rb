@@ -95,7 +95,6 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
     # @return [Hash]
     #
     def header(bill_type)
-      # toodo sacado de la factura
       { 'CantReg' => "#{@batch.size}", 'CbteTipo' => bill_type, 'PtoVta' => Bravo.sale_point }
     end
 
@@ -114,13 +113,8 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
       response_header = result[:fe_cab_resp]
       response_detail = result[:fe_det_resp][:fecae_det_response]
 
-      request_header  = body['FeCAEReq']['FeCabReq']
-      request_detail  = body['FeCAEReq']['FeDetReq']['FECAEDetRequest']
-
       # If there's only one invoice in the batch, put it in an array
       response_detail = response_detail.respond_to?(:to_ary) ? response_detail : [response_detail]
-
-      # request_detail.merge!(request_detail.delete(:iva)['AlicIva'])
 
       response_hash = { header_result:   response_header[:resultado],
                         authorized_on:   response_header[:fch_proceso],
@@ -164,7 +158,7 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
     def setup_invoice_structure(invoice, cbte)
       detail = {}
       detail['DocNro']    = invoice.document_number
-      detail['ImpNeto']   = invoice.net.to_f
+      detail['ImpNeto']   = invoice.net_amount
       detail['ImpIVA']    = invoice.iva_sum
       detail['ImpTotal']  = invoice.total
       detail['CbteDesde'] = detail['CbteHasta'] = cbte
@@ -174,7 +168,7 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
       detail['Iva'] = {
         'AlicIva' => {
           'Id' => invoice.applicable_iva_code,
-          'BaseImp' => invoice.net.round(2),
+          'BaseImp' => invoice.net_amount,
           'Importe' => invoice.iva_sum
         }
       }
@@ -195,34 +189,32 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
     end
 
     class Invoice
-      attr_accessor :net, :document_type, :document_number, :due_date, :aliciva_id, :date_from, :date_to,
+      attr_accessor :total, :document_type, :document_number, :due_date, :aliciva_id, :date_from, :date_to,
         :iva_condition, :concept, :currency
 
       def initialize(attrs = {})
         @iva_condition  = validate_iva_condition(attrs[:iva_condition])
-        @net            = attrs[:net]           || 0
+        @iva_type       = validate_iva_type(attrs[:iva_type])
+        @total          = attrs[:total].round(2)|| 0.0
         @document_type  = attrs[:document_type] || Bravo.default_documento
         @currency       = attrs[:currency]      || Bravo.default_moneda
         @concept        = attrs[:concept]       || Bravo.default_concepto
       end
 
-      # Calculates the total field for the invoice by adding
-      # net and iva_sum.
+      # Calculates the net amount for the invoice by substracting the iva from
+      # the total
       # @return [Float] the sum of both fields, or 0 if the net is 0.
       #
-      def total
-        @total = net.zero? ? 0 : net + iva_sum
-        @total.round(2)
+      def net_amount
+        net = @total / (1 + applicable_iva_multiplier)
+        net.round(2)
       end
 
       # Calculates the corresponding iva sum.
-      # This is performed by multiplying the net by the tax value
       # @return [Float] the iva sum
       #
-      # TODO: fix this
-      #
       def iva_sum
-        @iva_sum = net * applicable_iva_multiplier
+        @iva_sum = @total - net_amount
         @iva_sum.round(2)
       end
 
@@ -236,9 +228,22 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
         end
       end
 
+      def validate_iva_type(iva_type)
+        valid_types = Bravo::ALIC_IVA.keys
+        if valid_types.include? iva_type
+          if iva_type == :iva_0 and iva_condition == :responsable_inscripto
+            raise(NullOrInvalidAttribute.new,
+              "En caso de responsable inscripto iva_type debe ser distinto de :iva_0")
+          end
+          iva_type
+        else
+          raise(NullOrInvalidAttribute.new,
+            "El valor de iva_type debe estar incluído en #{ valid_types }")
+        end
+      end
+
       def applicable_iva
-        index = Bravo::APPLICABLE_IVA[Bravo.own_iva_cond][iva_condition]
-        Bravo::ALIC_IVA[index]
+        Bravo::ALIC_IVA[@iva_type]
       end
 
       def applicable_iva_code

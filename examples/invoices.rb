@@ -13,7 +13,7 @@ Bravo.openssl_bin       = '/usr/bin/openssl'
 Bravo::AuthData.environment = :test
 Bravo.logger.log = true
 
-puts "Let's issue a Factura for 1000 ARS to a Responsable Inscripto with 10.5% of IVA"
+puts "Let's issue a Factura A for 1000 ARS to a Responsable Inscripto with 10.5% of IVA"
 
 bill_a = Bravo::Bill.new(bill_type: :bill_a,
                          invoice_type: :invoice)
@@ -34,10 +34,10 @@ pp bill_a.response
 ########################################################
 
 
-puts "Let's issue a Factura for 100 ARS to a Consumidor Final"
+puts "Let's issue a Recibo B for 100 ARS to a Consumidor Final"
 
 bill_b = Bravo::Bill.new(bill_type: :bill_b,
-                         invoice_type: :invoice)
+                         invoice_type: :receipt)
 
 invoice = Bravo::Bill::Invoice.new(total: 100.0,
                                    document_type: 'DNI',

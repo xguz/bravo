@@ -70,7 +70,8 @@ module Bravo
   BILL_TYPE_A = {
     invoice: '01',
     debit:   '02',
-    credit:  '03'
+    credit:  '03',
+    receipt: '04'
   }
 
   # This hash keeps the codes for B document types by operation
@@ -78,7 +79,8 @@ module Bravo
   BILL_TYPE_B = {
     invoice: '06',
     debit:   '07',
-    credit:  '08'
+    credit:  '08',
+    receipt: '09'
   }
 
   # This hash keeps the different types of bills

@@ -67,7 +67,7 @@ module Bravo
     end
 
     def own_iva_cond=(iva_cond_symbol)
-      if Bravo::BILL_TYPE.key?(iva_cond_symbol)
+      if Bravo::IVA_CONDITION.key?(iva_cond_symbol)
         @own_iva_cond = iva_cond_symbol
       else
         raise(NullOrInvalidAttribute.new, "El valor de  own_iva_cond: (#{ iva_cond_symbol }) es inválido.")

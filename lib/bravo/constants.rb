@@ -58,17 +58,11 @@ module Bravo
 
   # Tax percentage and codes according to each iva combination
   #
-  ALIC_IVA = [['03', 0], ['04', 0.105], ['05', 0.21], ['06', 0.27]]
-
-  # Applicable tax according to buyer and seller's iva condition.
-  #
-  APPLICABLE_IVA = {
-    responsable_inscripto:  {
-      responsable_inscripto: 02,
-      consumidor_final: 00,
-      exento: 00,
-      responsable_monotributo: 00
-    }
+  ALIC_IVA = {
+      iva_0:  ['03', 0],
+      iva_10: ['04', 0.105],
+      iva_21: ['05', 0.21],
+      iva_27: ['06', 0.27]
   }
 
   # This hash keeps the codes for A document types by operation
@@ -76,7 +70,8 @@ module Bravo
   BILL_TYPE_A = {
     invoice: '01',
     debit:   '02',
-    credit:  '03'
+    credit:  '03',
+    receipt: '04'
   }
 
   # This hash keeps the codes for B document types by operation
@@ -84,21 +79,28 @@ module Bravo
   BILL_TYPE_B = {
     invoice: '06',
     debit:   '07',
-    credit:  '08'
+    credit:  '08',
+    receipt: '09'
   }
 
-  # This hash keeps the different buyer and invoice type mapping corresponding to
-  # the seller's iva condition and invoice kind.
+  # This hash keeps the different types of bills
+  #
+  BILL_TYPE = {
+    bill_a: BILL_TYPE_A,
+    bill_b: BILL_TYPE_B
+  }
+
+  # This hash is used to validate the buyer condition and the bill type being issued.
   # Usage:
   #   `BILL_TYPE[seller_iva_cond][buyer_iva_cond][invoice_type]` #=> invoice type as string
   #   `BILL_TYPE[:responsable_inscripto][:responsable_inscripto][:invoice]` #=> '01'
   #
-  BILL_TYPE = {
+  IVA_CONDITION = {
     responsable_inscripto: {
       responsable_inscripto:   BILL_TYPE_A,
       consumidor_final:        BILL_TYPE_B,
       exento:                  BILL_TYPE_B,
-      responsable_monotributo: BILL_TYPE_B }
+      responsable_monotributo: BILL_TYPE_B },
   }
 
   # This hash keeps the set of urls for wsaa and wsfe for production and testing envs

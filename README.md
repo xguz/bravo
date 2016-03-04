@@ -4,7 +4,7 @@
  Por ahora idéntica a leanucci/bravo, solo he modificado el ejemplo de este Readme, que fallaba debido a que faltaba el campo document_number / DocNro.
 
 
-[~~Bravo~~](http://images.coveralia.com/audio/b/Bravo-Desierto_Sin_Amor-Frontal.jpg) Bravo permite la obtenci&oacute;n del [~~C.A.E~~](http://www.muevamueva.com/masmusica/latina/cae/images/fotos.5.gif) C.A.E. (C&oacute;digo de Autorizaci&oacute;n Electr&oacute;nico) por medio del Web Service de Facturaci&oacute;n Electr&oacute;nica provisto por AFIP.
+Bravo permite la obtenci&oacute;n del C.A.E. (C&oacute;digo de Autorizaci&oacute;n Electr&oacute;nico) por medio del Web Service de Facturaci&oacute;n Electr&oacute;nica provisto por AFIP.
 
 
 ## Requisitos
@@ -59,16 +59,17 @@ Ejemplo de configuración tomado del spec_helper de Bravo:
 
 require 'bravo'
 
-Bravo.pkey              			 = 'spec/fixtures/certs/pkey'
-Bravo.cert              			 = 'spec/fixtures/certs/cert.crt'
-Bravo.cuit              			 = '20287740027'
-Bravo.sale_point        			 = '0002'
-Bravo.default_concepto  			 = 'Productos y Servicios'
-Bravo.default_documento 			 = 'CUIT'
-Bravo.default_moneda    			 = :peso
-Bravo.own_iva_cond      			 = :responsable_inscripto
-Bravo.openssl_bin       			 = '/usr/local/Cellar/openssl/1.0.1e/bin/openssl'
-Bravo::AuthData.environment		 = :test
+# Set up Bravo defaults/config.
+Bravo.pkey                  = 'spec/fixtures/certs/pkey'
+Bravo.cert                  = 'spec/fixtures/certs/cert'
+Bravo.cuit                  = '20085617517'
+Bravo.sale_point            = '0004'
+Bravo.default_concepto      = 'Servicios'
+Bravo.default_moneda        = :peso
+Bravo.own_iva_cond          = :responsable_inscripto
+Bravo.openssl_bin           = '/usr/bin/openssl'
+Bravo::AuthData.environment = :test
+Bravo.logger.log = true
 
 ```
 
@@ -77,6 +78,7 @@ Bravo::AuthData.environment		 = :test
 Para emitir un comprobante, basta con:
 
 * instanciar la clase `Bill`,
+* instanciar al menos una clase Bill::Invoice
 * pasarle los parámetros típicos del comprobante, como si lo llenásemos a mano,
 * llamar el método `authorize`, para que el WSFE autorice el comprobante que acabamos de 'llenar':
 
@@ -94,18 +96,30 @@ Código de ejemplo para la configuración anterior:
 
 ```ruby
 
-bill = Bravo::Bill.new(net:  100.0,
-                       aliciva_id: 2010,
-                       iva_condition: :consumidor_final,
-                       concepto: 'Servicios', 
-                       invoice_type:  :invoice
-                       );
+puts "Let's issue a Factura for 100 ARS to a Consumidor Final"
 
-bill.document_number = 20111111112; #faltaba en ejemplo en leanucci/bravo, resultaba en mensaje de error: "(soap:Client) Server was unable to read request. ---> There is an error in XML document"
+# Creamos un Bill de tipo Factura B
+bill_b = Bravo::Bill.new(bill_type: :bill_b,
+                         invoice_type: :invoice)
 
-bill.authorize
+# Creamos un Invoice y pasamos total, tipo de documento, condición de IVA
+# del receptor y porcentaje de IVA a aplicar. (0% o 21% para consumidor final)
+invoice = Bravo::Bill::Invoice.new(total: 100.0,
+                                   document_type: 'DNI',
+                                   iva_condition: :consumidor_final,
+                                   iva_type: :iva_21)
+# Agregamos DNI o CUIT
+invoice.document_number = '36025649'
 
-bill.response.cae # contiene el cae para este comprobante.
+# Agregamos este Invoice al Bill
+bill_b.set_new_invoice(invoice)
+
+# Enviamos la solicitud a la AFIP
+bill_b.authorize
+
+puts "Authorization result = #{ bill_b.authorized? }"
+puts "Authorization response."
+puts bill_b.response
 
 ```
 

@@ -33,7 +33,7 @@ AFIP exige para acceder a sus Web Services, la utilización del WSAA. Este servi
 Una vez instalada la version correcta de OpenSSL, podemos generar la clave privada y el CSR.
 
 * [Documentación WSAA](http://www.afip.gov.ar/ws/WSAA/Especificacion_Tecnica_WSAA_1.2.0.pdf)
-* [Cómo generar el CSR](https://gist.github.com/leanucci/7520622)
+* [Cómo generar el CSR](https://gist.github.com/edudepetris/53b54952c62e3f8db25406180a0fcf74)
 
 
 ## Uso

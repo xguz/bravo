@@ -51,7 +51,7 @@ module Bravo
       # @return [String]
       #
       def todays_data_file_name
-        @todays_data_file ||= "/tmp/bravo_#{ Bravo.cuit }_#{ Time.new.strftime('%Y_%m_%d') }.yml"
+        "/tmp/bravo_#{ Bravo.cuit }_#{ Time.new.strftime('%Y_%m_%d') }.yml"
       end
 
       def check_environment!

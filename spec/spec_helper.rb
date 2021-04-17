@@ -25,14 +25,14 @@ end
 
 Bravo.pkey              = 'spec/fixtures/certs/pkey'
 Bravo.cert              = 'spec/fixtures/certs/cert.crt'
-Bravo.cuit              = ENV['CUIT'] || '20287740027'
+Bravo.cuit              = ENV['CUIT'] || '20333610907'
 Bravo.sale_point        = ENV['SALE'] || '0002'
 Bravo.default_concepto  = 'Productos y Servicios'
 Bravo.default_documento = 'CUIT'
 Bravo.default_moneda    = :peso
 Bravo.own_iva_cond      = :responsable_inscripto
 Bravo.logger            = { log: false, level: :debug }
-Bravo.openssl_bin       = ENV["TRAVIS"] ? 'openssl' : '/usr/local/Cellar/openssl/1.0.2a-1/bin/openssl'
+Bravo.openssl_bin       = ENV["TRAVIS"] ? 'openssl' : '/usr/local/Cellar/openssl/1.0.2s/bin/openssl'
 Bravo::AuthData.environment = :test
 
 # TODO: refactor into actual validations

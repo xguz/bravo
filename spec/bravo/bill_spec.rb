@@ -2,119 +2,163 @@
 require 'spec_helper'
 
 describe 'Bill' do
-  let(:bill) { @bill = Bravo::Bill.new(iva_condition: :consumidor_final, invoice_type: :invoice) }
-
-  describe '.header' do
-    it 'sets up the header hash' do
-      @header = Bravo::Bill.header(0)
-      expect(@header.size).to be 3
-      %w[CantReg CbteTipo PtoVta].each do |key|
-        expect(@header.key?(key)).to be_true
-      end
-    end
-  end
-
-  describe '.initialize' do
-    it 'applies Bravos defaults' do
-      expect(bill.client).to be_a Savon::Client
-
-      %w[Token Sign Cuit].each do |key|
-        expect(bill.body['Auth'].fetch(key, nil)).not_to be_nil
-      end
-
-      expect(bill.document_type).to be Bravo.default_documento
-      expect(bill.currency).to be Bravo.default_moneda
-    end
-  end
-
   describe '#bill_type' do
-    before { bill.invoice_type = :invoice }
-    it 'returns the bill type for Responsable Inscripto' do
-      bill.iva_condition = :responsable_inscripto
+    context 'with valid types' do
+      Bravo::BILL_TYPE.each do |bill_type, _|
+        it 'returns the bill type' do
+          bill = Bravo::Bill.new(bill_type: bill_type, invoice_type: :invoice)
 
-      expect(bill.bill_type).to eq '01'
+          expect(bill.bill_type).to eq bill_type
+        end
+      end
     end
 
-    it 'returns the bill type for Consumidor Final' do
-      bill.iva_condition = :consumidor_final
-
-      expect(bill.bill_type).to eq '06'
+    context 'with an invalid type' do
+      it 'raises an error' do
+        msg = 'El valor de iva_condition debe estar incluído en [:bill_a, :bill_b]'
+        expect {
+          Bravo::Bill.new(bill_type: :invalid, invoice_type: :invoice)
+        }.to raise_error(Bravo::NullOrInvalidAttribute, msg)
+      end
     end
   end
 
-  describe '#iva_sum and #total' do
-    it 'calculate the IVA array values' do
-      bill.iva_condition  = :responsable_inscripto
-      bill.currency       = :peso
-      bill.net            = 100.89
-      bill.aliciva_id     = 2
+  describe '#invoice_type' do
+    context 'with valid types' do
+      Bravo::BILL_TYPE.each do |bill_type, invoice_types|
+        invoice_types.each do |invoice_type, _|
+          it 'returns the the invoice type' do
+            bill = Bravo::Bill.new(bill_type: bill_type, invoice_type: invoice_type)
 
-      expect(bill.iva_sum).to be_within(0.005).of(21.19)
-      expect(bill.total).to be_within(0.005).of(122.08)
+            expect(bill.invoice_type).to eq invoice_type
+          end
+        end
+      end
+    end
+
+    context 'with an invalid type' do
+      it 'raises an error' do
+        msg = 'invoice_type debe estar incluido en             [:invoice, :debit, :credit, :receipt]'
+        expect {
+          Bravo::Bill.new(bill_type: :bill_a, invoice_type: :invalid)
+        }.to raise_error(Bravo::NullOrInvalidAttribute, msg)
+      end
+    end
+  end
+
+  describe '#iva_sum and #net_amount' do
+    it 'calculate the IVA and net' do
+      invoice = Bravo::Bill::Invoice.new(total: 100.89,
+                                         document_type: 'CUIT',
+                                         iva_condition: :consumidor_final,
+                                         iva_type: :iva_10)
+
+      expect(invoice.iva_sum).to be_within(0.005).of(9.59)
+      expect(invoice.net_amount).to be_within(0.005).of(91.3)
     end
   end
 
   describe '#setup_bill' do
-    before do
-      bill.net        = 100
-      bill.aliciva_id = 2
-      bill.document_number    = '30710151543'
-      bill.iva_condition   = :responsable_inscripto
-      bill.concept   = 'Servicios'
-    end
-
-    it 'uses today dates when due and service dates are null',
-      vcr: { cassette_name: 'setup_bill_ommitted_date' } do
-      bill.setup_bill
-
-      detail = bill.body['FeCAEReq']['FeDetReq']['FECAEDetRequest']
-
-      expect(detail['FchServDesde']).to eq Time.new.strftime('%Y%m%d')
-      expect(detail['FchServHasta']).to eq Time.new.strftime('%Y%m%d')
-      expect(detail['FchVtoPago']).to   eq Time.new.strftime('%Y%m%d')
-    end
-
-    it 'uses given due and service dates', vcr: { cassette_name: 'setup_bill_given_date' } do
-      bill.due_date   = Date.new(2011, 12, 10).strftime('%Y%m%d')
-      bill.date_from  = Date.new(2011, 11, 01).strftime('%Y%m%d')
-      bill.date_to    = Date.new(2011, 11, 30).strftime('%Y%m%d')
+    it 'uses today dates as default', vcr: { cassette_name: 'setup_bill_given_date' } do
+      bill = Bravo::Bill.new(bill_type: :bill_a, invoice_type: :invoice)
+      invoice = Bravo::Bill::Invoice.new(total: 100.0,
+                                         document_type: 'CUIT',
+                                         iva_condition: :responsable_inscripto,
+                                         iva_type: :iva_10)
+      invoice.document_number = '36025649'
+      bill.set_new_invoice(invoice)
 
       bill.setup_bill
 
-      detail = bill.body['FeCAEReq']['FeDetReq']['FECAEDetRequest']
+      detail = bill.body['FeCAEReq']['FeDetReq']['FECAEDetRequest'].first
 
-      expect(detail['FchServDesde']).to eq '20111101'
-      expect(detail['FchServHasta']).to eq '20111130'
-      expect(detail['FchVtoPago']).to   eq '20111210'
+      expect(detail['FchServDesde']).to eq "20210419"
+      expect(detail['FchServHasta']).to eq "20210419"
+      expect(detail['FchVtoPago']).to   eq "20210419"
+    end
+
+    context 'credit/debit notes' do
+      it 'includes Comprebantes Asociados', vcr: { cassette_name: 'setup_bill_cbte_asoc' } do
+        bill = Bravo::Bill.new(bill_type: :bill_a, invoice_type: :credit)
+        invoice = Bravo::Bill::Invoice.new(total: 100.0,
+                                           document_type: 'CUIT',
+                                           iva_condition: :responsable_inscripto,
+                                           iva_type: :iva_10)
+        invoice.document_number = '36025649'
+        invoice.cbte_asocs = [{
+          type: '01', # 01 - Invoice
+          sale_point: '0004',
+          number: '00000035'
+        }]
+
+        bill.set_new_invoice(invoice)
+
+        bill.setup_bill
+
+        detail = bill.body['FeCAEReq']['FeDetReq']['FECAEDetRequest'].first
+        detail = detail['CbtesAsoc'][0]['CbteAsoc']
+
+        expect(detail['Tipo']).to eq "01"
+        expect(detail['PtoVta']).to eq "0004"
+        expect(detail['Nro']).to   eq "00000035"
+      end
     end
   end
 
-  describe '#authorize' do
-    describe 'for facturas' do
-      Bravo::BILL_TYPE[Bravo.own_iva_cond].keys.each do |target_iva_cond|
-        describe "issued to #{ target_iva_cond }" do
-          Bravo::BILL_TYPE[Bravo.own_iva_cond][target_iva_cond].keys.each do |bill_type|
-            vcr_options = { cassette_name: "#{ target_iva_cond }_and_#{ bill_type }" }
-            it "authorizes bill type #{ bill_type }", vcr: vcr_options do
-              bill.net = 10_000.88
-              bill.aliciva_id = 2
-              bill.document_number = '30710151543'
-              bill.iva_condition = target_iva_cond
-              bill.concept = 'Servicios'
-              bill.invoice_type = bill_type
+  describe "#authorize" do
+    context "when success", vcr: { cassette_name: 'authorize_success' }do
+      before do
+        @bill = Bravo::Bill.new(bill_type: :bill_a, invoice_type: :invoice)
+        document = Bravo::Bill::Invoice.new(total: 100.0,
+                                       document_type: 'CUIT',
+                                       iva_condition: :responsable_inscripto,
+                                       iva_type: :iva_10)
+        document.document_number = '30711543267'
+        @bill.set_new_invoice(document)
+        @bill.authorize
+      end
 
-              expect(bill.authorized?).to  be_false
+      it "returns true" do
+        expect(@bill.authorized?).to eq true
+      end
 
-              expect(bill.authorize).to   be_true
-              expect(bill.authorized?).to  be_true
+      it "returns the next number" do
+        expect(@bill.response[:detail_response][0][:cbte_desde]).to eq "37"
+      end
 
-              response = bill.response
+      it "returns cae" do
+        expect(@bill.response[:detail_response][0][:cae]).to eq "71167929598913"
+      end
+    end
 
-              expect(response.length).to     eql 28
-              expect(response.cae.length).to eql 14
-            end
-          end
-        end
+    context "when fails", vcr: { cassette_name: 'authorize_fails' } do
+      before do
+        @bill = Bravo::Bill.new(bill_type: :bill_a, invoice_type: :credit)
+        document = Bravo::Bill::Invoice.new(total: 100.0,
+                                       document_type: 'CUIT',
+                                       iva_condition: :responsable_inscripto,
+                                       iva_type: :iva_10)
+        document.document_number = '30711543267'
+        @bill.set_new_invoice(document)
+        @bill.authorize
+      end
+
+      it "returns false" do
+        expect(@bill.authorized?).to eq false
+      end
+
+      it "returns the next number" do
+        expect(@bill.response[:detail_response][0][:cbte_desde]).to eq "2"
+      end
+
+      it "doesn't return cae" do
+        expect(@bill.response[:detail_response][0][:cae]).to eq nil
+        expect(@bill.response[:detail_response][0][:cae_fch_vto]).to eq nil
+      end
+
+      it "populate with the errors" do
+        msg = "Si el comprobante es Debito o Credito, enviar estructura CbteAsoc o PeriodoAsoc."
+        expect(@bill.response[:detail_response][0][:observaciones][:obs][:msg]).to eq msg
       end
     end
   end

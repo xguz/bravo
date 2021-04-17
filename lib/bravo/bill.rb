@@ -1,3 +1,5 @@
+# https://www.afip.gob.ar/fe/documentos/manual-desarrollador-COMPG-v2-13-1.pdf
+#
 # encoding: utf-8
 module Bravo
   # The main class in Bravo. Handles WSFE method interactions.
@@ -186,6 +188,22 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
                       'FchServHasta'  => date_to    || today,
                       'FchVtoPago'    => due_date   || today)
       end
+
+      # Credit/Debit notes require it (RG 4540/19)
+      if invoice.cbte_asocs && invoice.cbte_asocs.any?
+        cbtes = invoice.cbte_asocs.map do |cbte|
+          {
+            'CbteAsoc' => {
+              'Tipo' => cbte[:type],
+              'PtoVta' => cbte[:sale_point],
+              'Nro' => cbte[:number]
+            }
+          }
+        end
+        detail['CbtesAsoc'] = cbtes
+      end
+
+      detail
     end
 
     def today
@@ -194,9 +212,10 @@ date_to: #{ date_to.inspect }, invoice_type: #{ invoice_type }>}
 
     class Invoice
       attr_accessor :total, :document_type, :document_number, :due_date, :aliciva_id, :date_from, :date_to,
-        :iva_condition, :concept, :currency
+        :iva_condition, :concept, :currency, :cbte_asocs
 
       def initialize(attrs = {})
+        @cbte_asocs     = []
         @iva_condition  = validate_iva_condition(attrs[:iva_condition])
         @iva_type       = validate_iva_type(attrs[:iva_type])
         @total          = attrs[:total].round(2)|| 0.0
